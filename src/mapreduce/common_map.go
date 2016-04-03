@@ -2,18 +2,55 @@ package mapreduce
 
 import (
 	"hash/fnv"
+	"os"
+	"log"
+	"encoding/json"
 )
 
 // doMap does the job of a map worker: it reads one of the input files
 // (inFile), calls the user-defined map function (mapF) for that file's
 // contents, and partitions the output into nReduce intermediate files.
 func doMap(
-	jobName string, // the name of the MapReduce job
-	mapTaskNumber int, // which map task this is
-	inFile string,
-	nReduce int, // the number of reduce task that will be run ("R" in the paper)
-	mapF func(file string, contents string) []KeyValue,
+jobName string, // the name of the MapReduce job
+mapTaskNumber int, // which map task this is
+inFile string,
+nReduce int, // the number of reduce task that will be run ("R" in the paper)
+mapF func(file string, contents string) []KeyValue,
 ) {
+
+	file, err := os.Open(inFile)
+	if err != nil {
+		log.Fatal("doMap Failed!")
+	}
+
+	fi, _ := file.Stat()
+	size := fi.Size()
+
+	b := make([]byte, size)
+	_, err = file.Read(b)
+	file.Close()
+
+	res := mapF("", string(b))
+
+	for r := 0; r < nReduce; r++ {
+		file, err = os.Create(reduceName(jobName, mapTaskNumber, r))
+		if err != nil {
+			log.Fatal("Domap")
+		}
+
+		enc := json.NewEncoder(file)
+		for _, e := range res {
+			if ihash(e.Key) == uint32(r) {
+				err := enc.Encode(&e)
+				if err != nil {
+					log.Fatal("DoMap: marshall", err)
+				}
+			}
+		}
+		file.Close()
+
+	}
+
 	// TODO:
 	// You will need to write this function.
 	// You can find the filename for this map task's input to reduce task number

@@ -104,7 +104,7 @@ func (mr *Master) run(jobName string, files []string, nreduce int,
 	mr.jobName = jobName
 	mr.files = files
 	mr.nReduce = nreduce
-
+	fmt.Println("mr files are:", mr.files)
 	fmt.Printf("%s: Starting Map/Reduce task %s\n", mr.address, mr.jobName)
 
 	schedule(mapPhase)
