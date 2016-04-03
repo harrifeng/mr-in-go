@@ -1,3 +1,7 @@
 pkg/
 api.key
 *-handin.tar.gz
+
+
+.idea/
+mr-in-go.iml
