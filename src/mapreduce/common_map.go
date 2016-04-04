@@ -40,7 +40,7 @@ mapF func(file string, contents string) []KeyValue,
 
 		enc := json.NewEncoder(file)
 		for _, e := range res {
-			if ihash(e.Key) == uint32(r) {
+			if ihash(e.Key) % uint32(nReduce) == uint32(r) {
 				err := enc.Encode(&e)
 				if err != nil {
 					log.Fatal("DoMap: marshall", err)
